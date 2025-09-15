@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(ASSOCIATE)
+  lawFirmId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  sessions      Session[]
+  lawFirm       LawFirm?  @relation(fields: [lawFirmId], references: [id])
+  cases         Case[]
+  timeEntries   TimeEntry[]
+  clients       Client[]
+  appointments  Appointment[]
+  messages      Message[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model LawFirm {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  logo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  cases       Case[]
+  clients     Client[]
+  documents   Document[]
+  billingRecords BillingRecord[]
+}
+
+model Case {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  status        CaseStatus @default(OPEN)
+  priority      Priority   @default(MEDIUM)
+  caseNumber    String     @unique
+  clientId      String
+  assignedToId  String
+  lawFirmId     String
+  startDate     DateTime   @default(now())
+  closeDate     DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  client        Client     @relation(fields: [clientId], references: [id])
+  assignedTo    User       @relation(fields: [assignedToId], references: [id])
+  lawFirm       LawFirm    @relation(fields: [lawFirmId], references: [id])
+  documents     Document[]
+  timeEntries   TimeEntry[]
+  appointments  Appointment[]
+  billingRecords BillingRecord[]
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String
+  phone       String?
+  address     String?
+  company     String?
+  lawFirmId   String
+  assignedToId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  lawFirm     LawFirm  @relation(fields: [lawFirmId], references: [id])
+  assignedTo  User     @relation(fields: [assignedToId], references: [id])
+  cases       Case[]
+  messages    Message[]
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  title       String
+  fileName    String
+  fileUrl     String
+  fileSize    Int
+  mimeType    String
+  caseId      String?
+  lawFirmId   String
+  uploadedBy  String
+  category    DocumentType @default(OTHER)
+  isConfidential Boolean   @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  case        Case?        @relation(fields: [caseId], references: [id])
+  lawFirm     LawFirm      @relation(fields: [lawFirmId], references: [id])
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  description String
+  hours       Float
+  date        DateTime
+  billableRate Float
+  userId      String
+  caseId      String
+  isBilled    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+  case        Case     @relation(fields: [caseId], references: [id])
+}
+
+model BillingRecord {
+  id          String        @id @default(cuid())
+  invoiceNumber String      @unique
+  amount      Float
+  status      BillingStatus @default(DRAFT)
+  dueDate     DateTime
+  paidDate    DateTime?
+  caseId      String
+  lawFirmId   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  case        Case          @relation(fields: [caseId], references: [id])
+  lawFirm     LawFirm       @relation(fields: [lawFirmId], references: [id])
+}
+
+model Appointment {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  type        AppointmentType @default(CONSULTATION)
+  status      AppointmentStatus @default(SCHEDULED)
+  userId      String
+  caseId      String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  user        User            @relation(fields: [userId], references: [id])
+  case        Case?           @relation(fields: [caseId], references: [id])
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  subject     String
+  content     String
+  isRead      Boolean     @default(false)
+  isConfidential Boolean  @default(true)
+  senderId    String
+  clientId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  sender      User        @relation(fields: [senderId], references: [id])
+  client      Client      @relation(fields: [clientId], references: [id])
+}
+
+enum UserRole {
+  PARTNER
+  ASSOCIATE
+  PARALEGAL
+  CLIENT
+  ADMIN
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  ON_HOLD
+  CLOSED
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DocumentType {
+  CONTRACT
+  BRIEF
+  MOTION
+  DISCOVERY
+  CORRESPONDENCE
+  COURT_FILING
+  EVIDENCE
+  OTHER
+}
+
+enum BillingStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum AppointmentType {
+  CONSULTATION
+  COURT_DATE
+  DEPOSITION
+  MEETING
+  CALL
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
