@@ -227,28 +227,34 @@ export function useClientForm({
 
   // Auto-save draft
   const saveDraft = () => {
-    const draftKey = `client-draft-${initialData?.email || 'new'}`
-    localStorage.setItem(draftKey, JSON.stringify(getValues()))
-    toast.success('Draft saved')
+    if (typeof window !== 'undefined') {
+      const draftKey = `client-draft-${initialData?.email || 'new'}`
+      localStorage.setItem(draftKey, JSON.stringify(getValues()))
+      toast.success('Draft saved')
+    }
   }
 
   // Load draft
   const loadDraft = () => {
-    const draftKey = `client-draft-${initialData?.email || 'new'}`
-    const draft = localStorage.getItem(draftKey)
-    if (draft) {
-      const draftData = JSON.parse(draft)
-      Object.keys(draftData).forEach(key => {
-        setValue(key as any, draftData[key])
-      })
-      toast.success('Draft loaded')
+    if (typeof window !== 'undefined') {
+      const draftKey = `client-draft-${initialData?.email || 'new'}`
+      const draft = localStorage.getItem(draftKey)
+      if (draft) {
+        const draftData = JSON.parse(draft)
+        Object.keys(draftData).forEach(key => {
+          setValue(key as any, draftData[key])
+        })
+        toast.success('Draft loaded')
+      }
     }
   }
 
   // Clear draft
   const clearDraft = () => {
-    const draftKey = `client-draft-${initialData?.email || 'new'}`
-    localStorage.removeItem(draftKey)
+    if (typeof window !== 'undefined') {
+      const draftKey = `client-draft-${initialData?.email || 'new'}`
+      localStorage.removeItem(draftKey)
+    }
   }
 
   // Calculate form progress
