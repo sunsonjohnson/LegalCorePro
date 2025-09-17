@@ -60,6 +60,10 @@ interface ClientProfileProps {
   onScheduleMeeting: () => void
 }
 
+function Label({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("text-sm font-medium text-gray-600", className)}>{children}</div>
+}
+
 export function ClientProfile({
   client,
   onEdit,
@@ -620,8 +624,4 @@ export function ClientProfile({
       </AlertDialog>
     </div>
   )
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("text-sm font-medium text-gray-600", className)}>{children}</div>
 }

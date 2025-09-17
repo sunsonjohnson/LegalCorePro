@@ -35,7 +35,6 @@ import {
 import { ClientSearchFilters } from '@/types/client'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { DateRange } from 'react-day-picker'
 
 interface ClientSearchProps {
   filters: ClientSearchFilters
@@ -63,21 +62,26 @@ export function ClientSearch({
   availableTags
 }: ClientSearchProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: filters.dateRange ? new Date(filters.dateRange.start) : undefined,
     to: filters.dateRange ? new Date(filters.dateRange.end) : undefined
   })
 
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range)
-    if (range?.from && range?.to) {
-      onFiltersChange({
-        dateRange: {
-          start: range.from.toISOString(),
-          end: range.to.toISOString()
-        }
-      })
+  const handleDateRangeChange = (range: { from?: Date; to?: Date } | undefined) => {
+    if (range) {
+      setDateRange(range)
+      if (range.from && range.to) {
+        onFiltersChange({
+          dateRange: {
+            start: range.from.toISOString(),
+            end: range.to.toISOString()
+          }
+        })
+      } else {
+        onFiltersChange({ dateRange: undefined })
+      }
     } else {
+      setDateRange({})
       onFiltersChange({ dateRange: undefined })
     }
   }

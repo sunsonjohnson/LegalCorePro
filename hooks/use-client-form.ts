@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ClientFormData } from '@/types/client'
@@ -90,7 +89,7 @@ export function useClientForm({
     const isValid = await trigger(step.fields as any)
     
     if (isValid) {
-      setCompletedSteps(prev => [...new Set([...prev, stepIndex])])
+      setCompletedSteps(prev => Array.from(new Set([...prev, stepIndex])))
     } else {
       setCompletedSteps(prev => prev.filter(s => s !== stepIndex))
     }
