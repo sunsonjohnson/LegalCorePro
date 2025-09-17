@@ -35,6 +35,7 @@ import {
 import { ClientSearchFilters } from '@/types/client'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { DateRange } from 'react-day-picker'
 
 interface ClientSearchProps {
   filters: ClientSearchFilters
@@ -62,17 +63,14 @@ export function ClientSearch({
   availableTags
 }: ClientSearchProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined
-    to: Date | undefined
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: filters.dateRange ? new Date(filters.dateRange.start) : undefined,
     to: filters.dateRange ? new Date(filters.dateRange.end) : undefined
   })
 
-  const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
+  const handleDateRangeChange = (range: DateRange | undefined) => {
     setDateRange(range)
-    if (range.from && range.to) {
+    if (range?.from && range?.to) {
       onFiltersChange({
         dateRange: {
           start: range.from.toISOString(),
@@ -297,12 +295,12 @@ export function ClientSearch({
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dateRange.from && "text-muted-foreground"
+                        !dateRange?.from && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.from ? (
-                        dateRange.to ? (
+                      {dateRange?.from ? (
+                        dateRange?.to ? (
                           <>
                             {format(dateRange.from, "LLL dd, y")} -{" "}
                             {format(dateRange.to, "LLL dd, y")}
@@ -319,7 +317,7 @@ export function ClientSearch({
                     <Calendar
                       initialFocus
                       mode="range"
-                      defaultMonth={dateRange.from}
+                      defaultMonth={dateRange?.from}
                       selected={dateRange}
                       onSelect={handleDateRangeChange}
                       numberOfMonths={2}
@@ -404,7 +402,7 @@ export function ClientSearch({
                 Date: {format(new Date(filters.dateRange.start), "MMM dd")} - {format(new Date(filters.dateRange.end), "MMM dd")}
                 <X 
                   className="w-3 h-3 cursor-pointer" 
-                  onClick={() => handleDateRangeChange({ from: undefined, to: undefined })}
+                  onClick={() => handleDateRangeChange(undefined)}
                 />
               </Badge>
             )}

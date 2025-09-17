@@ -44,7 +44,9 @@ import {
   Clock,
   Tag,
   Shield,
-  Key
+  Key,
+  Upload,
+  Plus
 } from 'lucide-react'
 import { Client } from '@/types/client'
 import { formatClientName, getClientInitials, getClientStatusColor, formatPhoneNumber } from '@/lib/client-utils'
